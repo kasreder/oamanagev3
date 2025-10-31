@@ -5,7 +5,7 @@ ThemeData buildTheme() {
   final base = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2454FF)),
-    textTheme: GoogleFonts.pretendardTextTheme(),
+    // textTheme: GoogleFonts.pretendardTextTheme(),
   );
 
   return base.copyWith(

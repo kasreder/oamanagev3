@@ -11,10 +11,10 @@ GoRouter createRouter(AuthProvider auth) {
     refreshListenable: auth,
     redirect: (context, state) {
       final isLoggedIn = auth.isAuthenticated;
-      if (!isLoggedIn && state.location != '/login') {
+      if (!isLoggedIn && state.uri.toString() != '/login') {
         return '/login';
       }
-      if (isLoggedIn && state.location == '/login') {
+      if (isLoggedIn && state.uri.toString() == '/login') {
         return '/home';
       }
       return null;
