@@ -4,6 +4,7 @@ import '../data/repositories/asset_repository.dart';
 import '../data/repositories/verification_repository.dart';
 import '../models/asset.dart';
 import '../models/verification.dart';
+import '../models/user.dart';
 import '../services/api_client.dart';
 
 class InspectionProvider extends ChangeNotifier {
@@ -45,5 +46,66 @@ class InspectionProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void showGuestPreview() {
+    _isLoading = false;
+    _assets = [
+      Asset(
+        uid: 'OA-2024-001',
+        name: '맥북 프로 14"',
+        assetType: '노트북',
+        status: '사용 중',
+        location: '서울 본사',
+        owner: const User(id: 1, employeeId: 'EMP-001', name: '김보라'),
+      ),
+      Asset(
+        uid: 'OA-2024-017',
+        name: '델 울트라샤프 27',
+        assetType: '모니터',
+        status: '설치 완료',
+        location: '서울 본사',
+        owner: const User(id: 2, employeeId: 'EMP-014', name: '이준호'),
+      ),
+      Asset(
+        uid: 'OA-2024-031',
+        name: '로지텍 MX Master 3S',
+        assetType: '주변기기',
+        status: '배송 중',
+        location: '부산 센터',
+        owner: const User(id: 3, employeeId: 'EMP-029', name: '최서연'),
+      ),
+    ];
+
+    _verifications = [
+      VerificationSummary(
+        assetUid: 'OA-2024-001',
+        assetType: '노트북',
+        barcodePhoto: true,
+        signature: true,
+        latestInspection: InspectionInfo(
+          scannedAt: DateTime.now().subtract(const Duration(days: 2)),
+          status: '완료',
+        ),
+      ),
+      VerificationSummary(
+        assetUid: 'OA-2024-017',
+        assetType: '모니터',
+        barcodePhoto: false,
+        signature: true,
+        latestInspection: InspectionInfo(
+          scannedAt: DateTime.now().subtract(const Duration(days: 5)),
+          status: '보완 필요',
+        ),
+      ),
+      VerificationSummary(
+        assetUid: 'OA-2024-031',
+        assetType: '주변기기',
+        barcodePhoto: false,
+        signature: false,
+      ),
+    ];
+
+    notifyListeners();
   }
 }
