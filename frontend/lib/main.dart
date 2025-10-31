@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'config/theme.dart';
@@ -34,9 +35,9 @@ class OAAssetApp extends StatelessWidget {
             locale: const Locale('ko'),
             supportedLocales: const [Locale('ko')],
             localizationsDelegates: const [
-              DefaultMaterialLocalizations.delegate,
-              DefaultWidgetsLocalizations.delegate,
-              DefaultCupertinoLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,  // ✅ Material 위젯용
+              GlobalWidgetsLocalizations.delegate,   // ✅ 공통 위젯용
+              GlobalCupertinoLocalizations.delegate, // ✅ iOS 스타일용
             ],
           );
         },
