@@ -1,0 +1,18 @@
+# Node
+backend/node_modules/
+backend/dist/
+backend/.env
+backend/logs/
+
+# Flutter
+frontend/.dart_tool/
+frontend/.idea/
+frontend/build/
+frontend/ios/
+frontend/android/
+frontend/macos/
+frontend/windows/
+frontend/linux/
+frontend/web/
+
+.DS_Store
