@@ -16,10 +16,12 @@ class AuthProvider extends ChangeNotifier {
   String? _accessToken;
   String? _refreshToken;
   User? _user;
+  bool _isGuest = false;
 
   String? get accessToken => _accessToken;
   User? get user => _user;
   bool get isAuthenticated => _accessToken != null && _user != null;
+  bool get isGuest => _isGuest;
 
   Future<void> loginWithProvider(String provider) async {
     final (accessToken, refreshToken, user) = await _repository.loginWithSocial(
@@ -30,6 +32,7 @@ class AuthProvider extends ChangeNotifier {
     _accessToken = accessToken;
     _refreshToken = refreshToken;
     _user = user;
+    _isGuest = false;
 
     await _secureStorage.write(key: 'accessToken', value: _accessToken);
     await _secureStorage.write(key: 'refreshToken', value: _refreshToken);
@@ -41,6 +44,19 @@ class AuthProvider extends ChangeNotifier {
     _accessToken = null;
     _refreshToken = null;
     _user = null;
+    _isGuest = false;
+
+    await _secureStorage.delete(key: 'accessToken');
+    await _secureStorage.delete(key: 'refreshToken');
+
+    notifyListeners();
+  }
+
+  Future<void> enterAsGuest() async {
+    _accessToken = null;
+    _refreshToken = null;
+    _user = null;
+    _isGuest = true;
 
     await _secureStorage.delete(key: 'accessToken');
     await _secureStorage.delete(key: 'refreshToken');

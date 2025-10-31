@@ -20,12 +20,17 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     final auth = context.read<AuthProvider>();
     final inspection = context.read<InspectionProvider>();
-    inspection.bindTokenProvider(() => auth.accessToken);
-    inspection.loadDashboard();
+    if (auth.isAuthenticated) {
+      inspection.bindTokenProvider(() => auth.accessToken);
+      inspection.loadDashboard();
+    } else {
+      inspection.showGuestPreview();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
     final inspection = context.watch<InspectionProvider>();
     final isLoading = inspection.isLoading;
 
@@ -36,6 +41,10 @@ class _HomePageState extends State<HomePage> {
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
+            if (auth.isGuest) ...[
+              const _GuestModeBanner(),
+              const SizedBox(height: 24),
+            ],
             Text(
               '오늘의 실사 현황',
               style: Theme.of(context).textTheme.headlineSmall,
@@ -48,6 +57,31 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 32),
               AssetListSection(assets: inspection.assets),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GuestModeBanner extends StatelessWidget {
+  const _GuestModeBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Theme.of(context).colorScheme.surfaceVariant,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              '둘러보기 모드',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 8),
+            Text('실제 데이터를 확인하려면 로그인해주세요. 지금은 샘플 데이터를 보여드리고 있어요.'),
           ],
         ),
       ),

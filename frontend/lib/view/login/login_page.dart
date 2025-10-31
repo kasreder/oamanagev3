@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
@@ -38,6 +39,17 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   ...providers.map((item) => _SocialLoginButton(provider: item)).toList(),
+                  const SizedBox(height: 16),
+                  FilledButton.tonal(
+                    onPressed: () async {
+                      await context.read<AuthProvider>().enterAsGuest();
+                      if (!context.mounted) {
+                        return;
+                      }
+                      context.go('/home');
+                    },
+                    child: const Text('둘러보기'),
+                  ),
                 ],
               ),
             ),
