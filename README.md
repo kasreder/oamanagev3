@@ -8,7 +8,7 @@
 | 문서명 | 설명 |
 |--------|------|
 | **[project_overview.md](docs/project_overview.md)** | 프로젝트 전체 개요, 기술 스택, 아키텍처, 프론트엔드/백엔드 폴더 구조 |
-| **[api_spec.md](docs/api_spec.md)** | REST API 명세, 인증, 자산/실사/인증 엔드포인트, 오류 응답 규약 |
+| **[api_spec.md]([docs/api_spec.md](https://github.com/kasreder/oamanagev3/blob/main/api_spec.md))** | REST API 명세, 인증, 자산/실사/인증 엔드포인트, 오류 응답 규약 |
 | **[db_schema.md](docs/db_schema.md)** | MySQL 8.x 데이터베이스 스키마, 테이블 정의, 인덱스, 마이그레이션 가이드 |
 | **[feature_spec.md](docs/feature_spec.md)** | 기능 명세, 페이지별 화면 설명, 소셜 로그인 플로우, API 연동 동작 |
 | **[ui_ux_spec.md](docs/ui_ux_spec.md)** | UI/UX 디자인 가이드, 컴포넌트 설계, 색상/타이포그래피, 반응형 레이아웃 |
