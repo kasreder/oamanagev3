@@ -1,10 +1,9 @@
-import express, { Application } from 'express';
 import 'dotenv/config';
+
+import app from './app';
 import { initializeDatabase } from './config/database';
 import logger from './utils/logger';
 
-
-const app: Application = express();
 const PORT = Number(process.env.PORT) || 3000;
 
 const startServer = async (): Promise<void> => {

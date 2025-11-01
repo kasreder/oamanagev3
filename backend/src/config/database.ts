@@ -2,7 +2,6 @@ import dotenv from 'dotenv';
 import mysql from 'mysql2/promise';
 import logger from '../utils/logger';
 
-
 dotenv.config();
 
 const connectionLimit = Number(process.env.DB_CONNECTION_LIMIT) || 10;
