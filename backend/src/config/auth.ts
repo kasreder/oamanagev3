@@ -5,11 +5,13 @@ dotenv.config();
 
 type ExpiresIn = NonNullable<SignOptions['expiresIn']>;
 
+
 export interface AuthConfig {
   jwtSecret: string;
   jwtExpiresIn: ExpiresIn;
   refreshTokenSecret: string;
   refreshTokenExpiresIn: ExpiresIn;
+
 }
 
 let cachedConfig: AuthConfig | null = null;

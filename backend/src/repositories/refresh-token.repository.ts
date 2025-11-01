@@ -28,7 +28,7 @@ export class RefreshTokenRepository {
         token: token.token,
         expiresAt: token.expiresAt,
       }
-    );
+
   }
 
   async deleteByToken(token: string): Promise<void> {
