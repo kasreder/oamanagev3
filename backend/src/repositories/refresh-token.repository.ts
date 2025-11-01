@@ -22,9 +22,13 @@ const mapToken = (row: RefreshTokenRow): RefreshToken => ({
 export class RefreshTokenRepository {
   async create(token: Omit<RefreshToken, 'id' | 'createdAt'>): Promise<void> {
     await getPool().query(
-      `INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (:userId, :token, :expiresAt)`
-      as string,
-      token
+      `INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (:userId, :token, :expiresAt)`,
+      {
+        userId: token.userId,
+        token: token.token,
+        expiresAt: token.expiresAt,
+      }
+
     );
   }
 
