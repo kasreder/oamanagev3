@@ -64,6 +64,254 @@ users (1) ────< asset_assignments >──── (M) assets
                    └────< signatures
 ```
 
+### 자동 테이블 생성 전략
+
+백엔드 서버 시작 시 **자동으로 테이블을 생성**합니다.
+
+#### 구현 방법: CREATE TABLE IF NOT EXISTS
+
+```typescript
+// src/config/database.ts
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+import logger from '@/utils/logger';
+
+dotenv.config();
+
+export const db = mysql.createPool({
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  connectionLimit: Number(process.env.DB_CONNECTION_LIMIT) || 10,
+  waitForConnections: true,
+  queueLimit: 0,
+});
+
+/**
+ * 데이터베이스 연결 테스트
+ */
+export const testConnection = async (): Promise<boolean> => {
+  try {
+    const connection = await db.getConnection();
+    logger.info('✅ Database connected successfully');
+    connection.release();
+    return true;
+  } catch (error) {
+    logger.error('❌ Database connection failed:', error);
+    return false;
+  }
+};
+
+/**
+ * 테이블 자동 생성
+ */
+export const createTablesIfNotExists = async (): Promise<void> => {
+  try {
+    logger.info('🔄 Checking and creating tables...');
+    
+    // 1. users 테이블
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        employee_id VARCHAR(32) UNIQUE NOT NULL COMMENT '사번',
+        name VARCHAR(64) NOT NULL COMMENT '사용자 이름',
+        email VARCHAR(128) UNIQUE COMMENT '이메일',
+        phone VARCHAR(32) COMMENT '전화번호',
+        role VARCHAR(20) DEFAULT 'user' COMMENT 'user, admin',
+        provider VARCHAR(20) COMMENT 'kakao, naver, google, teams',
+        provider_id VARCHAR(128) COMMENT '플랫폼별 고유 ID',
+        department_hq VARCHAR(64) COMMENT '본부',
+        department_dept VARCHAR(64) COMMENT '부서',
+        department_team VARCHAR(64) COMMENT '팀',
+        department_part VARCHAR(64) COMMENT '파트',
+        is_active BOOLEAN DEFAULT TRUE,
+        last_login_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_provider (provider, provider_id),
+        INDEX idx_department (department_team),
+        INDEX idx_active (is_active),
+        INDEX idx_role (role)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    
+    // 2. assets 테이블
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS assets (
+        uid VARCHAR(64) PRIMARY KEY COMMENT '자산 관리 코드',
+        name VARCHAR(128) COMMENT '자산 이름',
+        asset_type VARCHAR(64) COMMENT '장비 분류',
+        model_name VARCHAR(128) COMMENT '모델명',
+        serial_number VARCHAR(128) COMMENT '시리얼 넘버',
+        vendor VARCHAR(128) COMMENT '제조사',
+        status VARCHAR(32) DEFAULT '사용' COMMENT '자산 상태',
+        location_text VARCHAR(256),
+        building VARCHAR(64),
+        floor VARCHAR(32),
+        location_row INT,
+        location_col INT,
+        owner_user_id BIGINT,
+        metadata JSON COMMENT '추가 필드',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE SET NULL,
+        INDEX idx_status (status),
+        INDEX idx_type (asset_type),
+        INDEX idx_owner (owner_user_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    
+    // 3. inspections 테이블
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS inspections (
+        id VARCHAR(64) PRIMARY KEY COMMENT '실사 식별자',
+        asset_uid VARCHAR(64) NOT NULL,
+        status VARCHAR(32) NOT NULL,
+        memo TEXT,
+        scanned_at TIMESTAMP NOT NULL,
+        synced BOOLEAN DEFAULT FALSE,
+        user_team VARCHAR(128),
+        user_id BIGINT,
+        asset_type VARCHAR(64),
+        verified BOOLEAN DEFAULT FALSE,
+        barcode_photo_url VARCHAR(256),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (asset_uid) REFERENCES assets(uid) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+        INDEX idx_asset_scanned (asset_uid, scanned_at DESC),
+        INDEX idx_synced (synced),
+        INDEX idx_status (status)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    
+    // 4. signatures 테이블
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS signatures (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        asset_uid VARCHAR(64) NOT NULL,
+        user_id BIGINT NOT NULL,
+        user_name VARCHAR(64),
+        storage_location VARCHAR(256) NOT NULL,
+        file_size INT,
+        mime_type VARCHAR(50) DEFAULT 'image/png',
+        sha256 CHAR(64) UNIQUE,
+        captured_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (asset_uid) REFERENCES assets(uid) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        INDEX idx_asset_user (asset_uid, user_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    
+    // 5. refresh_tokens 테이블
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS refresh_tokens (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        user_id BIGINT NOT NULL,
+        token VARCHAR(512) UNIQUE NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        INDEX idx_user (user_id),
+        INDEX idx_expires (expires_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    
+    // 6. audit_logs 테이블
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        user_id BIGINT,
+        action VARCHAR(50) NOT NULL,
+        resource_type VARCHAR(50) NOT NULL,
+        resource_id VARCHAR(128),
+        changes JSON,
+        ip_address VARCHAR(45),
+        user_agent TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+        INDEX idx_user_action (user_id, action),
+        INDEX idx_resource (resource_type, resource_id),
+        INDEX idx_created (created_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    
+    logger.info('✅ All tables created or already exist');
+  } catch (error) {
+    logger.error('❌ Failed to create tables:', error);
+    throw error;
+  }
+};
+
+/**
+ * 데이터베이스 초기화 (테이블 생성 포함)
+ */
+export const initializeDatabase = async (): Promise<void> => {
+  // 1. 연결 테스트
+  const connected = await testConnection();
+  if (!connected) {
+    throw new Error('Database connection failed');
+  }
+  
+  // 2. 테이블 자동 생성
+  await createTablesIfNotExists();
+};
+```
+
+#### 서버 시작 시 자동 초기화
+
+```typescript
+// src/index.ts
+import express, { Application } from 'express';
+import dotenv from 'dotenv';
+import { initializeDatabase } from '@/config/database';
+import logger from '@/utils/logger';
+
+dotenv.config();
+
+const app: Application = express();
+const PORT = process.env.PORT || 3000;
+
+// 미들웨어 설정
+// ... (생략)
+
+/**
+ * 서버 시작
+ */
+const startServer = async () => {
+  try {
+    // 🔥 데이터베이스 자동 초기화 (테이블 생성 포함)
+    await initializeDatabase();
+    
+    app.listen(PORT, () => {
+      logger.info(`🚀 Server is running on http://localhost:${PORT}`);
+      logger.info(`📊 Environment: ${process.env.NODE_ENV}`);
+      logger.info(`🗄️  Database: ${process.env.DB_NAME}`);
+    });
+  } catch (error) {
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
+
+export default app;
+```
+
+### 서버 시작 로그 예시
+
+```
+✅ Database connected successfully
+🔄 Checking and creating tables...
+✅ All tables created or already exist
+🚀 Server is running on http://localhost:3000
+📊 Environment: development
+🗄️  Database: oa_asset_manager
+```
+
 ### 1. users 테이블
 ```sql
 CREATE TABLE users (
@@ -725,25 +973,24 @@ chore: 프로젝트 초기 설정
 ```bash
 # 체크리스트
 □ MySQL 데이터베이스 생성
-□ 테이블 마이그레이션 파일 작성
-  - migrations/001_create_users.sql
-  - migrations/002_create_assets.sql
-  - migrations/003_create_inspections.sql
-  - migrations/004_create_signatures.sql
-  - migrations/005_create_refresh_tokens.sql
-  - migrations/006_create_audit_logs.sql
-□ 마이그레이션 실행
-□ 시드 데이터 작성 (선택)
 □ DB 연결 설정 (src/config/database.ts)
+  - testConnection()
+  - createTablesIfNotExists() (6개 테이블 CREATE TABLE IF NOT EXISTS)
+  - initializeDatabase()
+□ 테스트 연결
 ```
 
 **커밋 예시:**
 ```
-feat: 데이터베이스 스키마 생성
-- MySQL 테이블 마이그레이션 파일
-- DB 연결 설정
-- 연결 테스트 함수
+feat: 데이터베이스 자동 초기화 구현
+- MySQL 연결 설정
+- 서버 시작 시 자동 테이블 생성 (CREATE TABLE IF NOT EXISTS)
+- 6개 테이블 정의 (users, assets, inspections, signatures, refresh_tokens, audit_logs)
 ```
+
+**참고:** 
+- 서버 시작 시 테이블이 없으면 자동으로 생성됩니다
+- 별도의 마이그레이션 파일이나 SQL 스크립트 불필요
 
 ---
 
@@ -1151,12 +1398,13 @@ npm run test:coverage
 
 ### 데이터베이스
 ```bash
-# 마이그레이션 실행
-npm run db:migrate
-
-# 시드 데이터 생성
+# 시드 데이터 생성 (선택)
 npm run db:seed
 ```
+
+**참고:** 
+- `npm run dev` 실행 시 테이블이 자동으로 생성됩니다
+- 별도의 마이그레이션 명령어는 필요하지 않습니다
 
 ### 실행 흐름 예시
 
@@ -1226,21 +1474,41 @@ CREATE DATABASE oa_asset_manager CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_c
 EXIT;
 ```
 
-### 3️⃣ 마이그레이션 실행
+**중요:** 테이블은 서버 시작 시 자동으로 생성됩니다! 수동 생성 불필요.
+
+### 3️⃣ 환경 변수 설정
 ```bash
-npm run db:migrate
+# .env 파일 편집
+vi .env
+
+# 또는
+nano .env
 ```
 
-### 4️⃣ 개발 서버 실행
+필수 설정:
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=oa_asset_manager
+
+AUTO_MIGRATE=true  # 자동 테이블 생성 활성화
+```
+
+### 4️⃣ 개발 서버 실행 (테이블 자동 생성 포함)
 ```bash
 npm run dev
 ```
 
 **성공 시 출력:**
 ```
-🚀 Server is running on http://localhost:3000
 ✅ Database connected successfully
+🔄 Checking and creating tables...
+✅ All tables created or already exist
+🚀 Server is running on http://localhost:3000
 📊 Environment: development
+🗄️  Database: oa_asset_manager
 ```
 
 ### 5️⃣ API 테스트
