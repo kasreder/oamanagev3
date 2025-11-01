@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { requestLogger } from './middlewares/logger.middleware';
 import { errorHandler, notFoundHandler } from './middlewares/error.middleware';
 import apiRouter from './routes';
+import healthRouter from './routes/health.routes';
 
 const app: Application = express();
 
@@ -27,6 +28,7 @@ app.use(express.json({ limit: process.env.REQUEST_BODY_LIMIT ?? '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
+app.use('/health', healthRouter);
 app.use(apiPrefix, apiRouter);
 
 app.use(notFoundHandler);
