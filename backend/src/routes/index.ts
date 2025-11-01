@@ -28,7 +28,5 @@ export const registerRoutes = (app: Express): void => {
   router.use('/inspections', buildInspectionRouter());
   router.use('/verifications', buildVerificationRouter());
   router.use('/references', buildReferenceRouter());
-
-
   app.use(prefix, router);
 };
