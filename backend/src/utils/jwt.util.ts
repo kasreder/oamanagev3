@@ -14,10 +14,13 @@ export const signAccessToken = (
 ): string => {
   const { jwtSecret, jwtExpiresIn } = getAuthConfig();
 
-  return jwt.sign(payload, jwtSecret, {
-    expiresIn: jwtExpiresIn,
+  const signOptions: SignOptions = {
     ...options,
-  });
+    expiresIn: options.expiresIn ?? jwtExpiresIn,
+  };
+
+  return jwt.sign(payload, jwtSecret, signOptions);
+
 };
 
 export const signRefreshToken = (
@@ -26,10 +29,13 @@ export const signRefreshToken = (
 ): string => {
   const { refreshTokenSecret, refreshTokenExpiresIn } = getAuthConfig();
 
-  return jwt.sign(payload, refreshTokenSecret, {
-    expiresIn: refreshTokenExpiresIn,
+  const signOptions: SignOptions = {
     ...options,
-  });
+    expiresIn: options.expiresIn ?? refreshTokenExpiresIn,
+  };
+
+  return jwt.sign(payload, refreshTokenSecret, signOptions);
+
 };
 
 export const verifyAccessToken = (token: string): AuthenticatedUser => {

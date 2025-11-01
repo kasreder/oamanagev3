@@ -1,12 +1,16 @@
 import dotenv from 'dotenv';
+import { SignOptions } from 'jsonwebtoken';
 
 dotenv.config();
 
+type ExpiresIn = SignOptions['expiresIn'];
+
 export interface AuthConfig {
   jwtSecret: string;
-  jwtExpiresIn: string;
+  jwtExpiresIn: ExpiresIn;
   refreshTokenSecret: string;
-  refreshTokenExpiresIn: string;
+  refreshTokenExpiresIn: ExpiresIn;
+
 }
 
 let cachedConfig: AuthConfig | null = null;
