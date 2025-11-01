@@ -7,7 +7,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "dev": "nodemon --watch src --ext ts --exec ts-node -r tsconfig-paths/register src/index.ts",
-    "build": "tsc --project tsconfig.json",
+    "build": "tsc --project tsconfig.json && node scripts/fix-path-aliases.js",
     "start": "node dist/index.js",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix",
