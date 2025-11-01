@@ -22,7 +22,8 @@ export class AuthService {
     const tokens = issueTokenPair(payload);
 
     const { refreshTokenExpiresIn } = getAuthConfig();
-    const expiresInMs = parseDuration(refreshTokenExpiresIn);
+    const expiresInMs = parseDuration(String(refreshTokenExpiresIn));
+
 
     await refreshTokenRepository.create({
       userId: user.id,

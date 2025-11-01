@@ -3,7 +3,8 @@ import { SignOptions } from 'jsonwebtoken';
 
 dotenv.config();
 
-type ExpiresIn = SignOptions['expiresIn'];
+type ExpiresIn = NonNullable<SignOptions['expiresIn']>;
+
 
 export interface AuthConfig {
   jwtSecret: string;

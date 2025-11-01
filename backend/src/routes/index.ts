@@ -1,4 +1,5 @@
 import { Express, Router } from 'express';
+
 import { buildAuthRouter } from './auth.routes';
 import { buildAssetRouter } from './asset.routes';
 import { buildInspectionRouter } from './inspection.routes';
@@ -28,5 +29,6 @@ export const registerRoutes = (app: Express): void => {
   router.use('/inspections', buildInspectionRouter());
   router.use('/verifications', buildVerificationRouter());
   router.use('/references', buildReferenceRouter());
+
   app.use(prefix, router);
 };

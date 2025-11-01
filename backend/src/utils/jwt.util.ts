@@ -36,7 +36,6 @@ export const signRefreshToken = (
 
   return jwt.sign(payload, refreshTokenSecret, signOptions);
 
-};
 
 export const verifyAccessToken = (token: string): AuthenticatedUser => {
   const { jwtSecret } = getAuthConfig();
