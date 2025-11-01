@@ -10,6 +10,7 @@ export interface AuthConfig {
   jwtExpiresIn: ExpiresIn;
   refreshTokenSecret: string;
   refreshTokenExpiresIn: ExpiresIn;
+
 }
 
 let cachedConfig: AuthConfig | null = null;

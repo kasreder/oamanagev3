@@ -20,6 +20,7 @@ export const signAccessToken = (
   };
 
   return jwt.sign(payload, jwtSecret, signOptions);
+
 };
 
 export const signRefreshToken = (
@@ -34,6 +35,7 @@ export const signRefreshToken = (
   };
 
   return jwt.sign(payload, refreshTokenSecret, signOptions);
+
 };
 
 export const verifyAccessToken = (token: string): AuthenticatedUser => {
