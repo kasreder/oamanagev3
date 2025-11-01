@@ -12,7 +12,8 @@
     "format": "prettier --write \"src/**/*.{ts,js,json}\"",
     "test": "jest",
     "test:watch": "jest --watch",
-    "typecheck": "tsc --noEmit --project tsconfig.json"
+    "typecheck": "tsc --noEmit --project tsconfig.json",
+    "type-check": "npm run typecheck"
   },
   "dependencies": {
     "axios": "^1.6.0",
