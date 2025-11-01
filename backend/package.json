@@ -14,7 +14,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,json}\"",
     "test": "jest",
     "migrate": "ts-node -r tsconfig-paths/register src/scripts/run-migrations.ts"
-  },
+
   "dependencies": {
     "axios": "^1.6.0",
     "bcrypt": "^5.1.0",
