@@ -32,11 +32,14 @@ const buildAuthConfig = (): AuthConfig => {
     throw new Error('REFRESH_TOKEN_SECRET is not configured. Please set it in the environment.');
   }
 
+  const jwtExpiresIn = JWT_EXPIRES_IN as ExpiresIn;
+  const refreshTokenExpiresIn = REFRESH_TOKEN_EXPIRES_IN as ExpiresIn;
+
   return {
     jwtSecret: JWT_SECRET,
-    jwtExpiresIn: JWT_EXPIRES_IN,
+    jwtExpiresIn,
     refreshTokenSecret: REFRESH_TOKEN_SECRET,
-    refreshTokenExpiresIn: REFRESH_TOKEN_EXPIRES_IN,
+    refreshTokenExpiresIn,
   };
 };
 

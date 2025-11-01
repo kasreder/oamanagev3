@@ -27,7 +27,8 @@ export class RefreshTokenRepository {
         userId: token.userId,
         token: token.token,
         expiresAt: token.expiresAt,
-      }
+      },
+    );
 
   }
 
