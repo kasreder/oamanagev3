@@ -15,6 +15,7 @@
     "test": "jest",
     "migrate": "ts-node -r tsconfig-paths/register src/scripts/run-migrations.ts"
   },
+
   "dependencies": {
     "axios": "^1.6.0",
     "bcrypt": "^5.1.0",
@@ -45,6 +46,7 @@
     "eslint": "^9.4.0",
     "@eslint/js": "^9.4.0",
     "globals": "^15.0.0",
+
     "@typescript-eslint/eslint-plugin": "^6.17.0",
     "@typescript-eslint/parser": "^6.17.0",
     "eslint-config-prettier": "^9.0.0",
