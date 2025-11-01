@@ -18,6 +18,7 @@
     },
     "sourceMap": true,
     "types": ["node"],
+    "typeRoots": ["./src/types", "./node_modules/@types"],
     "noImplicitOverride": true
   },
   "include": ["src", "test", "types"],
