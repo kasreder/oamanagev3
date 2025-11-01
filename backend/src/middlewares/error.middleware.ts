@@ -20,7 +20,12 @@ export const notFoundHandler = (req: Request, res: Response, next: NextFunction)
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const errorHandler = (err: Error, req: Request, res: Response, _next: NextFunction): void => {
+export const errorHandler = (
+  err: Error,
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+): void => {
   const status = err instanceof HttpError ? err.status : 500;
   const code = err instanceof HttpError ? err.code : 'INTERNAL_SERVER_ERROR';
   const message = err.message || '서버 오류가 발생했습니다.';

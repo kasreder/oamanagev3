@@ -51,7 +51,10 @@ const createRateLimiter = ({ windowMs, max, message }: RateLimitOptions) => {
 export const publicApiLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 100,
-  message: { error: 'TOO_MANY_REQUESTS', message: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' },
+  message: {
+    error: 'TOO_MANY_REQUESTS',
+    message: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
+  },
 });
 
 export const authApiLimiter = createRateLimiter({

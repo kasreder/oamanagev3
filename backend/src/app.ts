@@ -11,7 +11,9 @@ import healthRouter from './routes/health.routes';
 const app: Application = express();
 
 const apiPrefix = process.env.API_PREFIX ?? '/api/v1';
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()).filter(Boolean) ?? ['*'];
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean) ?? ['*'];
 
 app.set('trust proxy', true);
 app.use(helmet());

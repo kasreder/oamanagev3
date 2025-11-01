@@ -19,11 +19,19 @@ const buildSignOptions = (expiresIn: SignOptions['expiresIn']): SignOptions => (
 });
 
 export const signAccessToken = (payload: AccessTokenPayload): string => {
-  return jwt.sign(payload, authConfig.accessToken.secret as jwt.Secret, buildSignOptions(authConfig.accessToken.expiresIn));
+  return jwt.sign(
+    payload,
+    authConfig.accessToken.secret as jwt.Secret,
+    buildSignOptions(authConfig.accessToken.expiresIn),
+  );
 };
 
 export const signRefreshToken = (payload: Pick<AccessTokenPayload, 'id'>): string => {
-  return jwt.sign(payload, authConfig.refreshToken.secret as jwt.Secret, buildSignOptions(authConfig.refreshToken.expiresIn));
+  return jwt.sign(
+    payload,
+    authConfig.refreshToken.secret as jwt.Secret,
+    buildSignOptions(authConfig.refreshToken.expiresIn),
+  );
 };
 
 export const verifyAccessToken = (token: string): AuthUser => {

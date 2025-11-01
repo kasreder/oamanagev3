@@ -29,6 +29,11 @@ export const requireAuth = (req: Request, _res: Response, next: NextFunction): v
     req.user = payload;
     next();
   } catch (error) {
-    throw new HttpError(401, '유효하지 않은 토큰입니다.', 'INVALID_TOKEN', (error as Error).message);
+    throw new HttpError(
+      401,
+      '유효하지 않은 토큰입니다.',
+      'INVALID_TOKEN',
+      (error as Error).message,
+    );
   }
 };
