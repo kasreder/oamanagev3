@@ -60,7 +60,6 @@ const mapRefreshTokenRow = (row: RefreshTokenRow): RefreshToken => ({
 
 export const findById = async (id: number): Promise<User | null> => {
   const [rows] = await db.query<UserRow[]>(`SELECT * FROM users WHERE id = ? LIMIT 1`, [id]);
-
   if (!rows.length) {
     return null;
   }
@@ -70,7 +69,6 @@ export const findById = async (id: number): Promise<User | null> => {
 
 export const findByEmail = async (email: string): Promise<User | null> => {
   const [rows] = await db.query<UserRow[]>(`SELECT * FROM users WHERE email = ? LIMIT 1`, [email]);
-
   if (!rows.length) {
     return null;
   }
@@ -152,6 +150,7 @@ export const updateUser = async (id: number, payload: UpdateUserInput): Promise<
     UpdateUserInput[keyof UpdateUserInput],
   ][];
 
+
   for (const [key, value] of entries) {
     if (typeof value === 'undefined') {
       continue;
@@ -165,6 +164,7 @@ export const updateUser = async (id: number, payload: UpdateUserInput): Promise<
 
     fields.push(`${column} = ?`);
     values.push(value instanceof Date ? value : (value ?? null));
+
   }
 
   if (!fields.length) {
@@ -189,6 +189,7 @@ export const saveRefreshToken = async (
 ): Promise<RefreshToken> => {
   const [result] = await db.query<ResultSetHeader>(
     `INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)`,
+
     [userId, token, expiresAt],
   );
 

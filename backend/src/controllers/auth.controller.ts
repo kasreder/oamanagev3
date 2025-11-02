@@ -17,6 +17,7 @@ export const socialLogin = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
+
   try {
     const { accessToken } = validateSocialLoginRequest(req.body);
     const { provider } = req.params;
@@ -34,6 +35,7 @@ export const refreshToken = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
+
   try {
     const { refreshToken: token } = validateRefreshTokenRequest(req.body);
 
