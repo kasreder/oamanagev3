@@ -860,48 +860,92 @@ https://accounts.google.com/o/oauth2/v2/auth?client_id={CLIENT_ID}&redirect_uri=
 
 ## 인증 (Authentication)
 
-### 1. 소셜 로그인
+### 1. OAuth 콜백 (모바일 앱 연동)
+```
+GET /api/v1/auth/kakao/callback
+GET /api/v1/auth/naver/callback
+GET /api/v1/auth/google/callback
+GET /api/v1/auth/teams/callback
+```
+**Query Parameters:**
+- `code`, `state`: OAuth 2.0 Authorization Code Flow에서 전달되는 값
+- `access_token`: 일부 SDK(카카오, Teams 등)에서 Implicit Flow로 내려주는 토큰
+- `error`, `error_description`: 인증 실패 시 오류 정보
+
+**동작:**
+- 쿼리 파라미터를 검증하고 `APP_AUTH_CALLBACK_URI`(기본값 `myapp://auth/callback`)로 302 Redirect
+- 성공 시 `status=success`와 함께 `code` 또는 `access_token` 전달
+- 실패 시 `status=error`와 함께 `error`, `error_description` 전달
+
+### 2. 소셜 로그인 토큰 교환
 ```
 POST /api/v1/auth/social/{provider}
 ```
-**Request:**
+**Path Variable:**
+- `provider`: `kakao|naver|google|teams`
+  - 실제 구현에서는 `backend/src/services/auth.service.ts`의 `SUPPORTED_PROVIDERS` 상수로 관리하며 **네 가지 제공자를 모두 사용**합니다.
+  - 새 소셜 로그인을 추가하거나 제거하려면 `SUPPORTED_PROVIDERS`와 `backend/src/config/social.ts`에 있는 각 Provider 설정을 함께 수정해야 합니다.
+
+**Request Body:**
 ```json
 {
   "accessToken": "플랫폼_액세스_토큰",
-  "provider": "kakao|naver|google|teams"
+  "provider": "kakao"
 }
 ```
+- `accessToken`은 필수, body의 `provider`가 존재할 경우 URL의 provider와 일치해야 함
+
 **Response:**
 ```json
 {
-  "access_token": "jwt_token",
-  "refresh_token": "refresh_token",
+  "access_token": "jwt_access_token",
+  "refresh_token": "jwt_refresh_token",
   "expires_in": 3600,
   "user": {
     "id": 1,
     "name": "홍길동",
     "email": "hong@example.com",
-    "provider": "kakao"
+    "provider": "kakao",
+    "role": "user",
+    "employeeId": "KAKAO-1a2b3c4d5e6f"
   }
 }
 ```
+- 로그인 성공 시 기존 Refresh 토큰은 모두 폐기되고 새 Refresh 토큰으로 교체됨
 
-#### 2. 토큰 갱신
+#### 3. 토큰 갱신
 ```
 POST /api/v1/auth/refresh
 ```
-**Request:**
+**Request Body:**
 ```json
 {
   "refresh_token": "refresh_token_value"
 }
 ```
 
-#### 3. 로그아웃
+**Response:**
+```json
+{
+  "access_token": "새로운_access_token",
+  "refresh_token": "새로운_refresh_token",
+  "expires_in": 3600
+}
+```
+- 전달된 Refresh 토큰의 만료 여부를 검증한 뒤 Access/Refresh 토큰을 모두 재발급
+
+#### 4. 로그아웃
 ```
 POST /api/v1/auth/logout
 Headers: Authorization: Bearer <token>
 ```
+- **Request Body (optional):**
+```json
+{
+  "refreshToken": "선택적으로 전달"
+}
+```
+- Refresh 토큰을 전달하면 해당 토큰만 삭제, 미전달 시 사용자 계정의 Refresh 토큰을 모두 폐기
 
 ---
 
