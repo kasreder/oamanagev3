@@ -350,4 +350,14 @@ export const getAuthConfig = () => ({
   audience: authConfig.audience,
   accessTokenExpiresIn: authConfig.accessToken.expiresIn,
   refreshTokenExpiresIn: authConfig.refreshToken.expiresIn,
+  socialRedirectUris: SUPPORTED_PROVIDERS.reduce<Partial<Record<SocialProvider, string>>>(
+    (acc, provider) => {
+      const redirectUri = socialConfig[provider]?.redirectUri;
+      if (redirectUri) {
+        acc[provider] = redirectUri;
+      }
+      return acc;
+    },
+    {},
+  ),
 });
