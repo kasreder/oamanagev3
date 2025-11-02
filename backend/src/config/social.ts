@@ -7,6 +7,7 @@ export interface SocialProviderConfig {
   userInfoUrl: string;
   clientId?: string;
   clientSecret?: string;
+  redirectUri?: string;
   additionalParams?: Record<string, string>;
 }
 
@@ -22,18 +23,21 @@ export const socialConfig: SocialConfig = {
     tokenInfoUrl: 'https://kapi.kakao.com/v1/user/access_token_info',
     userInfoUrl: 'https://kapi.kakao.com/v2/user/me',
     clientId: process.env.KAKAO_REST_API_KEY, // 키입력 필수
+    redirectUri: process.env.KAKAO_REDIRECT_URI,
   },
   naver: {
     tokenInfoUrl: 'https://openapi.naver.com/v1/nid/me',
     userInfoUrl: 'https://openapi.naver.com/v1/nid/me',
     clientId: process.env.NAVER_CLIENT_ID, // 키입력 필수
     clientSecret: process.env.NAVER_CLIENT_SECRET, // 키입력 필수
+    redirectUri: process.env.NAVER_REDIRECT_URI,
   },
   google: {
     tokenInfoUrl: 'https://www.googleapis.com/oauth2/v3/tokeninfo',
     userInfoUrl: 'https://www.googleapis.com/oauth2/v3/userinfo',
     clientId: process.env.GOOGLE_CLIENT_ID, // 키입력 필수
     clientSecret: process.env.GOOGLE_CLIENT_SECRET, // 키입력 필수
+    redirectUri: process.env.GOOGLE_REDIRECT_URI,
   },
   teams: {
     tokenInfoUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
@@ -43,5 +47,6 @@ export const socialConfig: SocialConfig = {
     additionalParams: {
       tenant: process.env.TEAMS_TENANT_ID ?? 'common',
     },
+    redirectUri: process.env.TEAMS_REDIRECT_URI,
   },
 };
