@@ -5,6 +5,7 @@ import { requireAuth } from '../middlewares/auth.middleware';
 
 const router = Router();
 
+router.get('/:provider/callback', authController.handleOAuthCallback);
 router.post('/:provider/callback', authController.socialLogin);
 router.post('/social/:provider', authController.socialLogin);
 router.post('/refresh', authController.refreshToken);

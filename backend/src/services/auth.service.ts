@@ -27,11 +27,14 @@ interface RefreshTokenResult {
   expires_in: number;
 }
 
-const SUPPORTED_PROVIDERS: SocialProvider[] = ['kakao', 'naver', 'google', 'teams'];
+export const SUPPORTED_PROVIDERS: SocialProvider[] = ['kakao', 'naver', 'google', 'teams'];
+
+export const isSupportedProvider = (provider: string): provider is SocialProvider =>
+  (SUPPORTED_PROVIDERS as string[]).includes(provider);
 
 const ensureProvider = (provider: string): SocialProvider => {
-  if ((SUPPORTED_PROVIDERS as string[]).includes(provider)) {
-    return provider as SocialProvider;
+  if (isSupportedProvider(provider)) {
+    return provider;
   }
 
   throw new HttpError(400, '지원하지 않는 소셜 로그인입니다.', 'UNSUPPORTED_PROVIDER');

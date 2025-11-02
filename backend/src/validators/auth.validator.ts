@@ -7,8 +7,16 @@ const validationOptions: Joi.ValidationOptions = {
   convert: true,
 };
 
+const SOCIAL_PROVIDERS = ['kakao', 'naver', 'google', 'teams'] as const;
+
+type SocialProvider = (typeof SOCIAL_PROVIDERS)[number];
+
 const socialLoginSchema = Joi.object({
   accessToken: Joi.string().trim().required(),
+  provider: Joi.string()
+    .lowercase()
+    .valid(...SOCIAL_PROVIDERS)
+    .optional(),
 });
 
 const refreshTokenSchema = Joi.object({
@@ -22,7 +30,9 @@ const logoutSchema = Joi.object({
 const formatError = (error: Joi.ValidationError) =>
   error.details.map((detail) => detail.message).join(', ');
 
-export const validateSocialLoginRequest = (payload: unknown): { accessToken: string } => {
+export const validateSocialLoginRequest = (
+  payload: unknown,
+): { accessToken: string; provider?: SocialProvider } => {
   const { value, error } = socialLoginSchema.validate(payload, validationOptions);
 
   if (error) {
@@ -34,7 +44,7 @@ export const validateSocialLoginRequest = (payload: unknown): { accessToken: str
     );
   }
 
-  return value as { accessToken: string };
+  return value as { accessToken: string; provider?: SocialProvider };
 };
 
 export const validateRefreshTokenRequest = (payload: unknown): { refreshToken: string } => {
