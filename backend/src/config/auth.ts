@@ -31,11 +31,11 @@ export const authConfig: AuthConfig = {
   issuer: process.env.JWT_ISSUER ?? 'oa-asset-manager',
   audience: process.env.JWT_AUDIENCE ?? 'oa-asset-manager-clients',
   accessToken: {
-    secret: ensureValue(process.env.JWT_SECRET),
+    secret: ensureValue(process.env.JWT_SECRET), // 키입력 필수
     expiresIn: (process.env.JWT_EXPIRES_IN ?? '1h') as SignOptions['expiresIn'],
   },
   refreshToken: {
-    secret: ensureValue(process.env.REFRESH_TOKEN_SECRET, process.env.JWT_SECRET),
+    secret: ensureValue(process.env.REFRESH_TOKEN_SECRET, process.env.JWT_SECRET), // 키입력 필수
     expiresIn: (process.env.REFRESH_TOKEN_EXPIRES_IN ?? '7d') as SignOptions['expiresIn'],
   },
 };
