@@ -60,6 +60,10 @@ const mapRefreshTokenRow = (row: RefreshTokenRow): RefreshToken => ({
 
 export const findById = async (id: number): Promise<User | null> => {
   const [rows] = await db.query<UserRow[]>(`SELECT * FROM users WHERE id = ? LIMIT 1`, [id]);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8d9bbba (.)
   if (!rows.length) {
     return null;
   }
@@ -69,6 +73,10 @@ export const findById = async (id: number): Promise<User | null> => {
 
 export const findByEmail = async (email: string): Promise<User | null> => {
   const [rows] = await db.query<UserRow[]>(`SELECT * FROM users WHERE email = ? LIMIT 1`, [email]);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8d9bbba (.)
   if (!rows.length) {
     return null;
   }
@@ -149,7 +157,10 @@ export const updateUser = async (id: number, payload: UpdateUserInput): Promise<
     keyof UpdateUserInput,
     UpdateUserInput[keyof UpdateUserInput],
   ][];
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8d9bbba (.)
 
   for (const [key, value] of entries) {
     if (typeof value === 'undefined') {
@@ -164,7 +175,10 @@ export const updateUser = async (id: number, payload: UpdateUserInput): Promise<
 
     fields.push(`${column} = ?`);
     values.push(value instanceof Date ? value : (value ?? null));
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8d9bbba (.)
   }
 
   if (!fields.length) {
@@ -189,7 +203,10 @@ export const saveRefreshToken = async (
 ): Promise<RefreshToken> => {
   const [result] = await db.query<ResultSetHeader>(
     `INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)`,
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8d9bbba (.)
     [userId, token, expiresAt],
   );
 
