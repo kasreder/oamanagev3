@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 
 import {
+  isSupportedProvider,
   loginWithSocial,
   logout as logoutService,
   refreshAccessToken,
@@ -13,6 +14,7 @@ import {
 import { HttpError } from '../middlewares/error.middleware';
 import logger from '../utils/logger';
 import { SocialProvider } from '../models/User';
+
 
 const getSingleQueryValue = (value: unknown): string | undefined => {
   if (Array.isArray(value)) {
@@ -114,6 +116,7 @@ const createOAuthCallbackHandler = (provider: SocialProvider) => {
   };
 };
 
+
 export const socialLogin = async (
   req: Request,
   res: Response,
@@ -143,7 +146,6 @@ export const kakaoCallback = createOAuthCallbackHandler('kakao');
 export const naverCallback = createOAuthCallbackHandler('naver');
 export const googleCallback = createOAuthCallbackHandler('google');
 export const teamsCallback = createOAuthCallbackHandler('teams');
-
 export const refreshToken = async (
   req: Request,
   res: Response,
