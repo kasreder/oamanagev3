@@ -32,10 +32,6 @@ export const validateSocialLoginRequest = (payload: unknown): { accessToken: str
       'INVALID_SOCIAL_LOGIN_REQUEST',
       formatError(error),
     );
-<<<<<<< HEAD
-
-=======
->>>>>>> 8d9bbba (.)
   }
 
   return value as { accessToken: string };
@@ -51,10 +47,6 @@ export const validateRefreshTokenRequest = (payload: unknown): { refreshToken: s
       'INVALID_REFRESH_TOKEN_REQUEST',
       formatError(error),
     );
-<<<<<<< HEAD
-
-=======
->>>>>>> 8d9bbba (.)
   }
 
   return { refreshToken: value.refresh_token };
@@ -70,10 +62,6 @@ export const validateLogoutRequest = (payload: unknown): { refreshToken?: string
       'INVALID_LOGOUT_REQUEST',
       formatError(error),
     );
-<<<<<<< HEAD
-
-=======
->>>>>>> 8d9bbba (.)
   }
 
   return value as { refreshToken?: string };
