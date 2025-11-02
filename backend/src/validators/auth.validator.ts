@@ -1,5 +1,4 @@
 import Joi from 'joi';
-
 import { HttpError } from '../middlewares/error.middleware';
 
 const validationOptions: Joi.ValidationOptions = {

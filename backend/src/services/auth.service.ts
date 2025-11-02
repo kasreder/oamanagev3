@@ -146,7 +146,6 @@ const parseTeamsProfile = (data: unknown): SocialProfile => {
 };
 
 const parseProfileByProvider = (provider: SocialProvider, data: unknown): SocialProfile => {
-
   switch (provider) {
     case 'kakao':
       return parseKakaoProfile(data);

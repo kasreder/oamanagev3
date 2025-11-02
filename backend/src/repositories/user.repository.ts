@@ -1,5 +1,4 @@
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
-
 import { db } from '../config/database';
 import { HttpError } from '../middlewares/error.middleware';
 import { CreateUserInput, RefreshToken, UpdateUserInput, User } from '../models/User';

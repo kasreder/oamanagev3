@@ -34,7 +34,6 @@ export const refreshToken = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-
   try {
     const { refreshToken: token } = validateRefreshTokenRequest(req.body);
 
