@@ -753,6 +753,111 @@ router.use('/assets', publicApiLimiter);
 router.use('/auth', authApiLimiter);
 ```
 
+## 소셜 로그인 OAuth 플로우 및 리다이렉트 URI
+
+### OAuth 2.0 인증 플로우
+
+```
+사용자 → Flutter 앱 → SNS OAuth 서버 → Callback URL → 백엔드 서버 → Flutter 앱
+```
+
+#### 상세 플로우
+
+1. **Flutter 앱**: 소셜 로그인 버튼 클릭
+2. **SNS SDK**: OAuth 인증 화면 열기 (웹뷰 또는 브라우저)
+3. **사용자**: SNS 계정으로 로그인 및 권한 승인
+4. **SNS 서버**: 인증 성공 후 Redirect URI로 리다이렉트
+5. **Callback 처리**: Authorization Code 또는 Access Token 획득
+6. **Flutter → 백엔드**: Access Token을 백엔드로 전송
+7. **백엔드**: Token 검증 → 사용자 정보 조회 → JWT 발급
+8. **Flutter**: JWT 저장 및 로그인 완료
+
+### 리다이렉트 URI 설정
+
+#### 개발 환경 (localhost)
+```env
+KAKAO_REDIRECT_URI=http://localhost:3000/api/v1/auth/kakao/callback
+NAVER_REDIRECT_URI=http://localhost:3000/api/v1/auth/naver/callback
+GOOGLE_REDIRECT_URI=http://localhost:3000/api/v1/auth/google/callback
+TEAMS_REDIRECT_URI=http://localhost:3000/api/v1/auth/teams/callback
+```
+
+#### 프로덕션 환경
+```env
+KAKAO_REDIRECT_URI=https://api.yourdomain.com/api/v1/auth/kakao/callback
+NAVER_REDIRECT_URI=https://api.yourdomain.com/api/v1/auth/naver/callback
+GOOGLE_REDIRECT_URI=https://api.yourdomain.com/api/v1/auth/google/callback
+TEAMS_REDIRECT_URI=https://api.yourdomain.com/api/v1/auth/teams/callback
+```
+
+### 각 플랫폼별 앱 등록 가이드
+
+#### 1. 카카오 (Kakao Developers)
+- **등록 사이트**: https://developers.kakao.com/
+- **설정 경로**: 내 애플리케이션 → 앱 선택 → 제품 설정 → 카카오 로그인
+- **필요 정보**: REST API 키, Redirect URI
+- **요청 권한**: 프로필 정보, 카카오계정(이메일)
+
+#### 2. 네이버 (Naver Developers)
+- **등록 사이트**: https://developers.naver.com/apps
+- **설정 경로**: Application → 내 애플리케이션 → API 설정
+- **필요 정보**: Client ID, Client Secret, Callback URL
+- **요청 권한**: 회원이름, 이메일 주소, 프로필 사진
+
+#### 3. 구글 (Google Cloud Console)
+- **등록 사이트**: https://console.cloud.google.com/
+- **설정 경로**: API 및 서비스 → 사용자 인증 정보 → OAuth 2.0 클라이언트 ID
+- **필요 정보**: Client ID, Client Secret, 승인된 리디렉션 URI
+- **요청 권한**: openid, profile, email
+
+#### 4. Microsoft Teams (Azure Portal)
+- **등록 사이트**: https://portal.azure.com/
+- **설정 경로**: Azure Active Directory → 앱 등록 → 새 등록
+- **필요 정보**: Application ID, Client Secret, Tenant ID, Redirect URI
+- **요청 권한**: User.Read, email, profile
+
+### Callback 엔드포인트 구현 예시
+
+```typescript
+// src/routes/auth.routes.ts
+router.get('/kakao/callback', authController.kakaoCallback);
+router.get('/naver/callback', authController.naverCallback);
+router.get('/google/callback', authController.googleCallback);
+router.get('/teams/callback', authController.teamsCallback);
+
+// src/controllers/auth.controller.ts
+export const kakaoCallback = async (req: Request, res: Response) => {
+  const { code } = req.query;
+  
+  // 1. Authorization Code로 Access Token 요청
+  const tokenResponse = await axios.post('https://kauth.kakao.com/oauth/token', {
+    grant_type: 'authorization_code',
+    client_id: process.env.KAKAO_REST_API_KEY,
+    redirect_uri: process.env.KAKAO_REDIRECT_URI,
+    code,
+  });
+  
+  // 2. Access Token으로 사용자 정보 조회
+  // 3. 사용자 생성 또는 조회
+  // 4. JWT 토큰 생성
+  // 5. Flutter 앱으로 리다이렉트 (Deep Link)
+  res.redirect(`myapp://auth/callback?token=${jwt}`);
+};
+```
+
+### 브라우저 테스트 URL
+
+```
+# 카카오
+https://kauth.kakao.com/oauth/authorize?client_id={REST_API_KEY}&redirect_uri=http://localhost:3000/api/v1/auth/kakao/callback&response_type=code
+
+# 네이버
+https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id={CLIENT_ID}&redirect_uri=http://localhost:3000/api/v1/auth/naver/callback&state=RANDOM
+
+# 구글
+https://accounts.google.com/o/oauth2/v2/auth?client_id={CLIENT_ID}&redirect_uri=http://localhost:3000/api/v1/auth/google/callback&response_type=code&scope=openid%20profile%20email
+```
+
 ## 인증 (Authentication)
 
 ### 1. 소셜 로그인
