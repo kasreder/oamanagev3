@@ -27,7 +27,13 @@ export const validateSocialLoginRequest = (payload: unknown): { accessToken: str
   const { value, error } = socialLoginSchema.validate(payload, validationOptions);
 
   if (error) {
-    throw new HttpError(400, '잘못된 요청 데이터입니다.', 'INVALID_SOCIAL_LOGIN_REQUEST', formatError(error));
+    throw new HttpError(
+      400,
+      '잘못된 요청 데이터입니다.',
+      'INVALID_SOCIAL_LOGIN_REQUEST',
+      formatError(error),
+    );
+
   }
 
   return value as { accessToken: string };
@@ -37,7 +43,13 @@ export const validateRefreshTokenRequest = (payload: unknown): { refreshToken: s
   const { value, error } = refreshTokenSchema.validate(payload, validationOptions);
 
   if (error) {
-    throw new HttpError(400, 'Refresh 토큰이 필요합니다.', 'INVALID_REFRESH_TOKEN_REQUEST', formatError(error));
+    throw new HttpError(
+      400,
+      'Refresh 토큰이 필요합니다.',
+      'INVALID_REFRESH_TOKEN_REQUEST',
+      formatError(error),
+    );
+
   }
 
   return { refreshToken: value.refresh_token };
@@ -47,7 +59,13 @@ export const validateLogoutRequest = (payload: unknown): { refreshToken?: string
   const { value, error } = logoutSchema.validate(payload ?? {}, validationOptions);
 
   if (error) {
-    throw new HttpError(400, '로그아웃 요청이 잘못되었습니다.', 'INVALID_LOGOUT_REQUEST', formatError(error));
+    throw new HttpError(
+      400,
+      '로그아웃 요청이 잘못되었습니다.',
+      'INVALID_LOGOUT_REQUEST',
+      formatError(error),
+    );
+
   }
 
   return value as { refreshToken?: string };

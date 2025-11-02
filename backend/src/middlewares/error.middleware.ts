@@ -26,6 +26,7 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction,
 ): void => {
+  void _next;
   const status = err instanceof HttpError ? err.status : 500;
   const code = err instanceof HttpError ? err.code : 'INTERNAL_SERVER_ERROR';
   const message = err.message || '서버 오류가 발생했습니다.';

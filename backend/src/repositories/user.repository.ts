@@ -59,11 +59,7 @@ const mapRefreshTokenRow = (row: RefreshTokenRow): RefreshToken => ({
 });
 
 export const findById = async (id: number): Promise<User | null> => {
-  const [rows] = await db.query<UserRow[]>(
-    `SELECT * FROM users WHERE id = ? LIMIT 1`,
-    [id],
-  );
-
+  const [rows] = await db.query<UserRow[]>(`SELECT * FROM users WHERE id = ? LIMIT 1`, [id]);
   if (!rows.length) {
     return null;
   }
@@ -72,11 +68,7 @@ export const findById = async (id: number): Promise<User | null> => {
 };
 
 export const findByEmail = async (email: string): Promise<User | null> => {
-  const [rows] = await db.query<UserRow[]>(
-    `SELECT * FROM users WHERE email = ? LIMIT 1`,
-    [email],
-  );
-
+  const [rows] = await db.query<UserRow[]>(`SELECT * FROM users WHERE email = ? LIMIT 1`, [email]);
   if (!rows.length) {
     return null;
   }
@@ -153,7 +145,11 @@ export const updateUser = async (id: number, payload: UpdateUserInput): Promise<
   const fields: string[] = [];
   const values: unknown[] = [];
 
-  const entries = Object.entries(payload) as [keyof UpdateUserInput, UpdateUserInput[keyof UpdateUserInput]][];
+  const entries = Object.entries(payload) as [
+    keyof UpdateUserInput,
+    UpdateUserInput[keyof UpdateUserInput],
+  ][];
+
 
   for (const [key, value] of entries) {
     if (typeof value === 'undefined') {
@@ -167,7 +163,8 @@ export const updateUser = async (id: number, payload: UpdateUserInput): Promise<
       .replace(/^provider_id$/, 'provider_id');
 
     fields.push(`${column} = ?`);
-    values.push(value instanceof Date ? value : value ?? null);
+    values.push(value instanceof Date ? value : (value ?? null));
+
   }
 
   if (!fields.length) {
@@ -191,7 +188,8 @@ export const saveRefreshToken = async (
   expiresAt: Date,
 ): Promise<RefreshToken> => {
   const [result] = await db.query<ResultSetHeader>(
-    `INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)` ,
+    `INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)`,
+
     [userId, token, expiresAt],
   );
 

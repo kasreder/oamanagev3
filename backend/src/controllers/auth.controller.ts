@@ -12,7 +12,12 @@ import {
 } from '../validators/auth.validator';
 import { HttpError } from '../middlewares/error.middleware';
 
-export const socialLogin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const socialLogin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+
   try {
     const { accessToken } = validateSocialLoginRequest(req.body);
     const { provider } = req.params;
@@ -25,7 +30,12 @@ export const socialLogin = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
-export const refreshToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+
   try {
     const { refreshToken: token } = validateRefreshTokenRequest(req.body);
 

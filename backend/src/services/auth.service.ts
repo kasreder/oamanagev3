@@ -4,13 +4,15 @@ import { createHash } from 'crypto';
 import { authConfig } from '../config/auth';
 import { socialConfig } from '../config/social';
 import { HttpError } from '../middlewares/error.middleware';
-import {
-  SocialProfile,
-  SocialProvider,
-  User,
-} from '../models/User';
+import { SocialProfile, SocialProvider, User } from '../models/User';
 import * as userRepository from '../repositories/user.repository';
-import { decodeToken, signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.util';
+import {
+  decodeToken,
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+} from '../utils/jwt.util';
+
 import logger from '../utils/logger';
 
 interface SocialLoginResult {
@@ -41,31 +43,111 @@ const buildEmployeeId = (provider: SocialProvider, providerId: string): string =
   return `${provider.toUpperCase()}-${hash}`.slice(0, 32);
 };
 
-const parseKakaoProfile = (data: any): SocialProfile => ({
-  id: String(data.id ?? data?.kakao_account?.id ?? ''),
-  email: data?.kakao_account?.email ?? undefined,
-  name: data?.kakao_account?.profile?.nickname ?? data?.properties?.nickname ?? undefined,
-});
+type UnknownRecord = Record<string, unknown>;
 
-const parseNaverProfile = (data: any): SocialProfile => ({
-  id: String(data?.response?.id ?? ''),
-  email: data?.response?.email ?? undefined,
-  name: data?.response?.name ?? data?.response?.nickname ?? undefined,
-});
+const isRecord = (value: unknown): value is UnknownRecord =>
+  typeof value === 'object' && value !== null;
 
-const parseGoogleProfile = (data: any): SocialProfile => ({
-  id: String(data?.sub ?? data?.id ?? ''),
-  email: data?.email ?? data?.user?.email ?? undefined,
-  name: data?.name ?? data?.user?.name ?? undefined,
-});
+const toStringOrUndefined = (value: unknown): string | undefined => {
+  if (typeof value === 'string') {
+    return value;
+  }
 
-const parseTeamsProfile = (data: any): SocialProfile => ({
-  id: String(data?.id ?? data?.user?.id ?? ''),
-  email: data?.mail ?? data?.userPrincipalName ?? undefined,
-  name: data?.displayName ?? data?.user?.displayName ?? undefined,
-});
+  if (typeof value === 'number') {
+    return String(value);
+  }
 
-const parseProfileByProvider = (provider: SocialProvider, data: any): SocialProfile => {
+  return undefined;
+};
+
+const parseKakaoProfile = (data: unknown): SocialProfile => {
+  if (!isRecord(data)) {
+    return { id: '' };
+  }
+
+  const account = isRecord(data.kakao_account) ? data.kakao_account : undefined;
+  const profile = account && isRecord(account.profile) ? account.profile : undefined;
+  const properties = isRecord(data.properties) ? data.properties : undefined;
+
+  const id = toStringOrUndefined(data.id) ?? toStringOrUndefined(account?.id) ?? '';
+
+  const email = toStringOrUndefined(account?.email);
+
+  const name = toStringOrUndefined(profile?.nickname) ?? toStringOrUndefined(properties?.nickname);
+
+  return {
+    id,
+    ...(email ? { email } : {}),
+    ...(name ? { name } : {}),
+  };
+};
+
+const parseNaverProfile = (data: unknown): SocialProfile => {
+  if (!isRecord(data)) {
+    return { id: '' };
+  }
+
+  const response = isRecord(data.response) ? data.response : undefined;
+
+  const id = toStringOrUndefined(response?.id) ?? '';
+  const email = toStringOrUndefined(response?.email);
+  const name = toStringOrUndefined(response?.name) ?? toStringOrUndefined(response?.nickname);
+
+  return {
+    id,
+    ...(email ? { email } : {}),
+    ...(name ? { name } : {}),
+  };
+};
+
+const parseGoogleProfile = (data: unknown): SocialProfile => {
+  if (!isRecord(data)) {
+    return { id: '' };
+  }
+
+  const user = isRecord(data.user) ? data.user : undefined;
+
+  const id =
+    toStringOrUndefined(data.sub) ??
+    toStringOrUndefined(data.id) ??
+    toStringOrUndefined(user?.id) ??
+    '';
+
+  const email = toStringOrUndefined(data.email) ?? toStringOrUndefined(user?.email);
+  const name = toStringOrUndefined(data.name) ?? toStringOrUndefined(user?.name);
+
+  return {
+    id,
+    ...(email ? { email } : {}),
+    ...(name ? { name } : {}),
+  };
+};
+
+const parseTeamsProfile = (data: unknown): SocialProfile => {
+  if (!isRecord(data)) {
+    return { id: '' };
+  }
+
+  const user = isRecord(data.user) ? data.user : undefined;
+
+  const id = toStringOrUndefined(data.id) ?? toStringOrUndefined(user?.id) ?? '';
+
+  const email =
+    toStringOrUndefined(data.mail) ??
+    toStringOrUndefined(data.userPrincipalName) ??
+    toStringOrUndefined(user?.email);
+
+  const name = toStringOrUndefined(data.displayName) ?? toStringOrUndefined(user?.displayName);
+
+  return {
+    id,
+    ...(email ? { email } : {}),
+    ...(name ? { name } : {}),
+  };
+};
+
+const parseProfileByProvider = (provider: SocialProvider, data: unknown): SocialProfile => {
+
   switch (provider) {
     case 'kakao':
       return parseKakaoProfile(data);
