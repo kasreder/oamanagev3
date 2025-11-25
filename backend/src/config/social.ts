@@ -25,7 +25,6 @@ export const socialConfig: SocialConfig = {
     tokenInfoUrl: 'https://kapi.kakao.com/v1/user/access_token_info',
     userInfoUrl: 'https://kapi.kakao.com/v2/user/me',
     clientId: process.env.KAKAO_REST_API_KEY, // 키입력 필수
-    clientSecret: process.env.KAKAO_CLIENT_SECRET,
     redirectUri: process.env.KAKAO_REDIRECT_URI,
   },
   naver: {
