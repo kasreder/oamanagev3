@@ -53,17 +53,24 @@ const exchangeAuthorizationCodeForToken = async (
   provider: SocialProvider,
   code: string,
   state?: string,
+  redirectUriOverride?: string,
 ): Promise<SocialTokenResponse> => {
   const config = socialConfig[provider];
 
-  if (!config?.tokenUrl || !config.clientId || !config.redirectUri) {
+  if (!config?.tokenUrl || !config.clientId) {
     throw new HttpError(400, '소셜 로그인 구성이 올바르지 않습니다.', 'INVALID_SOCIAL_CONFIG');
+  }
+
+  const redirectUri = redirectUriOverride ?? config.redirectUri;
+
+  if (!redirectUri) {
+    throw new HttpError(400, '소셜 로그인 리디렉트 URI가 설정되지 않았습니다.', 'INVALID_SOCIAL_CONFIG');
   }
 
   const params = new URLSearchParams({
     grant_type: 'authorization_code',
     client_id: config.clientId,
-    redirect_uri: config.redirectUri,
+    redirect_uri: redirectUri,
     code,
   });
 
@@ -76,6 +83,10 @@ const exchangeAuthorizationCodeForToken = async (
   }
 
   try {
+    logger.info('Exchanging authorization code for token', {
+      provider,
+      redirectUri,
+    });
     const response = await axios.post<SocialTokenResponse>(config.tokenUrl, params, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -364,6 +375,7 @@ export const loginWithAuthorizationCode = async (
   providerParam: string,
   code: string,
   state?: string,
+  redirectUriOverride?: string,
 ): Promise<SocialLoginResult & { social_access_token: string }> => {
   const provider = ensureProvider(providerParam.toLowerCase());
 
@@ -371,6 +383,8 @@ export const loginWithAuthorizationCode = async (
     provider,
     code,
     state,
+    redirectUriOverride,
+
   );
 
   const loginResult = await loginWithSocial(provider, socialAccessToken);

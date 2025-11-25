@@ -92,7 +92,10 @@ const createOAuthCallbackHandler = (provider: SocialProvider) => {
 
       if (code) {
         try {
-          const authResult = await loginWithAuthorizationCode(provider, code, state);
+
+          const callbackUrl = `${req.protocol}://${req.get('host')}${req.baseUrl}${req.path}`;
+
+          const authResult = await loginWithAuthorizationCode(provider, code, state, callbackUrl);
 
           const redirectUrl = buildAppRedirectUrl(APP_AUTH_CALLBACK_URI, {
             provider,
