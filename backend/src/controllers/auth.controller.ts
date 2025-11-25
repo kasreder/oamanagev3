@@ -91,7 +91,8 @@ const createOAuthCallbackHandler = (provider: SocialProvider) => {
 
       if (code) {
         try {
-          const configuredRedirectUri = socialConfig[provider]?.redirectUri;
+          const configuredRedirectUri =
+            socialConfig[provider]?.redirectUri ?? socialConfig[provider]?.redirect_uri;
           const callbackUrl = configuredRedirectUri
             ? configuredRedirectUri
             : `${req.protocol}://${req.get('host')}${req.baseUrl}${req.path}`;
