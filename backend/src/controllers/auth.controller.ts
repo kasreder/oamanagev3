@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
 import {
-  isSupportedProvider,
   loginWithAuthorizationCode,
   loginWithSocial,
   logout as logoutService,
@@ -15,7 +14,7 @@ import {
 import { HttpError } from '../middlewares/error.middleware';
 import logger from '../utils/logger';
 import { SocialProvider } from '../models/User';
-
+import { socialConfig } from '../config/social';
 
 const getSingleQueryValue = (value: unknown): string | undefined => {
   if (Array.isArray(value)) {
@@ -92,8 +91,11 @@ const createOAuthCallbackHandler = (provider: SocialProvider) => {
 
       if (code) {
         try {
-
-          const callbackUrl = `${req.protocol}://${req.get('host')}${req.baseUrl}${req.path}`;
+          const configuredRedirectUri =
+            socialConfig[provider]?.redirectUri ?? socialConfig[provider]?.redirect_uri;
+          const callbackUrl = configuredRedirectUri
+            ? configuredRedirectUri
+            : `${req.protocol}://${req.get('host')}${req.baseUrl}${req.path}`;
 
           const authResult = await loginWithAuthorizationCode(provider, code, state, callbackUrl);
 
@@ -176,7 +178,6 @@ const createOAuthCallbackHandler = (provider: SocialProvider) => {
     }
   };
 };
-
 
 export const socialLogin = async (
   req: Request,

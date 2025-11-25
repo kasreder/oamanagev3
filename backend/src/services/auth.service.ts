@@ -49,22 +49,30 @@ const ensureProvider = (provider: string): SocialProvider => {
   throw new HttpError(400, '지원하지 않는 소셜 로그인입니다.', 'UNSUPPORTED_PROVIDER');
 };
 
-const exchangeAuthorizationCodeForToken = async (
+export const buildTokenRequestParams = (
   provider: SocialProvider,
   code: string,
   state?: string,
   redirectUriOverride?: string,
-): Promise<SocialTokenResponse> => {
+): {
+  params: URLSearchParams;
+  redirectUri: string;
+  tokenUrl: string;
+} => {
   const config = socialConfig[provider];
 
   if (!config?.tokenUrl || !config.clientId) {
     throw new HttpError(400, '소셜 로그인 구성이 올바르지 않습니다.', 'INVALID_SOCIAL_CONFIG');
   }
 
-  const redirectUri = redirectUriOverride ?? config.redirectUri;
+  const redirectUri = redirectUriOverride ?? config.redirectUri ?? config.redirect_uri;
 
   if (!redirectUri) {
-    throw new HttpError(400, '소셜 로그인 리디렉트 URI가 설정되지 않았습니다.', 'INVALID_SOCIAL_CONFIG');
+    throw new HttpError(
+      400,
+      '소셜 로그인 리디렉트 URI가 설정되지 않았습니다.',
+      'INVALID_SOCIAL_CONFIG',
+    );
   }
 
   const params = new URLSearchParams({
@@ -82,12 +90,28 @@ const exchangeAuthorizationCodeForToken = async (
     params.append('state', state);
   }
 
+  return { params, redirectUri, tokenUrl: config.tokenUrl };
+};
+
+const exchangeAuthorizationCodeForToken = async (
+  provider: SocialProvider,
+  code: string,
+  state?: string,
+  redirectUriOverride?: string,
+): Promise<SocialTokenResponse> => {
+  const { params, redirectUri, tokenUrl } = buildTokenRequestParams(
+    provider,
+    code,
+    state,
+    redirectUriOverride,
+  );
+
   try {
     logger.info('Exchanging authorization code for token', {
       provider,
       redirectUri,
     });
-    const response = await axios.post<SocialTokenResponse>(config.tokenUrl, params, {
+    const response = await axios.post<SocialTokenResponse>(tokenUrl, params, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
@@ -384,7 +408,6 @@ export const loginWithAuthorizationCode = async (
     code,
     state,
     redirectUriOverride,
-
   );
 
   const loginResult = await loginWithSocial(provider, socialAccessToken);
@@ -451,7 +474,7 @@ export const getAuthConfig = () => ({
   refreshTokenExpiresIn: authConfig.refreshToken.expiresIn,
   socialRedirectUris: SUPPORTED_PROVIDERS.reduce<Partial<Record<SocialProvider, string>>>(
     (acc, provider) => {
-      const redirectUri = socialConfig[provider]?.redirectUri;
+      const redirectUri = socialConfig[provider]?.redirectUri ?? socialConfig[provider]?.redirect_uri;
       if (redirectUri) {
         acc[provider] = redirectUri;
       }
