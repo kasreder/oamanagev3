@@ -64,7 +64,11 @@ const exchangeAuthorizationCodeForToken = async (
   const redirectUri = redirectUriOverride ?? config.redirectUri;
 
   if (!redirectUri) {
-    throw new HttpError(400, '소셜 로그인 리디렉트 URI가 설정되지 않았습니다.', 'INVALID_SOCIAL_CONFIG');
+    throw new HttpError(
+      400,
+      '소셜 로그인 리디렉트 URI가 설정되지 않았습니다.',
+      'INVALID_SOCIAL_CONFIG',
+    );
   }
 
   const params = new URLSearchParams({
@@ -384,7 +388,6 @@ export const loginWithAuthorizationCode = async (
     code,
     state,
     redirectUriOverride,
-
   );
 
   const loginResult = await loginWithSocial(provider, socialAccessToken);
