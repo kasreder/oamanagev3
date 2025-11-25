@@ -92,6 +92,7 @@ const createOAuthCallbackHandler = (provider: SocialProvider) => {
 
       if (code) {
         try {
+
           const callbackUrl = `${req.protocol}://${req.get('host')}${req.baseUrl}${req.path}`;
 
           const authResult = await loginWithAuthorizationCode(provider, code, state, callbackUrl);

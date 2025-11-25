@@ -87,7 +87,6 @@ const exchangeAuthorizationCodeForToken = async (
       provider,
       redirectUri,
     });
-
     const response = await axios.post<SocialTokenResponse>(config.tokenUrl, params, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -385,6 +384,7 @@ export const loginWithAuthorizationCode = async (
     code,
     state,
     redirectUriOverride,
+
   );
 
   const loginResult = await loginWithSocial(provider, socialAccessToken);
