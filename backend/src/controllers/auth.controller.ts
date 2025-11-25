@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import {
   isSupportedProvider,
+  loginWithAuthorizationCode,
   loginWithSocial,
   logout as logoutService,
   refreshAccessToken,
@@ -89,17 +90,74 @@ const createOAuthCallbackHandler = (provider: SocialProvider) => {
         return;
       }
 
-      if (code || accessToken) {
-        const redirectUrl = buildAppRedirectUrl(APP_AUTH_CALLBACK_URI, {
-          provider,
-          status: 'success',
-          code,
-          access_token: accessToken,
-          state,
-        });
+      if (code) {
+        try {
+          const authResult = await loginWithAuthorizationCode(provider, code, state);
 
-        res.redirect(redirectUrl);
-        return;
+          const redirectUrl = buildAppRedirectUrl(APP_AUTH_CALLBACK_URI, {
+            provider,
+            status: 'success',
+            access_token: authResult.access_token,
+            refresh_token: authResult.refresh_token,
+            expires_in: String(authResult.expires_in),
+            state,
+          });
+
+          res.redirect(redirectUrl);
+          return;
+        } catch (exchangeError) {
+          logger.warn('OAuth code exchange failed', {
+            provider,
+            error: (exchangeError as Error).message,
+            state,
+          });
+
+          const redirectUrl = buildAppRedirectUrl(APP_AUTH_CALLBACK_URI, {
+            provider,
+            status: 'error',
+            error: 'token_exchange_failed',
+            error_description: (exchangeError as Error).message,
+            state,
+          });
+
+          res.redirect(redirectUrl);
+          return;
+        }
+      }
+
+      if (accessToken) {
+        try {
+          const authResult = await loginWithSocial(provider, accessToken);
+
+          const redirectUrl = buildAppRedirectUrl(APP_AUTH_CALLBACK_URI, {
+            provider,
+            status: 'success',
+            access_token: authResult.access_token,
+            refresh_token: authResult.refresh_token,
+            expires_in: String(authResult.expires_in),
+            state,
+          });
+
+          res.redirect(redirectUrl);
+          return;
+        } catch (tokenError) {
+          logger.warn('OAuth access token login failed', {
+            provider,
+            error: (tokenError as Error).message,
+            state,
+          });
+
+          const redirectUrl = buildAppRedirectUrl(APP_AUTH_CALLBACK_URI, {
+            provider,
+            status: 'error',
+            error: 'invalid_social_token',
+            error_description: (tokenError as Error).message,
+            state,
+          });
+
+          res.redirect(redirectUrl);
+          return;
+        }
       }
 
       const redirectUrl = buildAppRedirectUrl(APP_AUTH_CALLBACK_URI, {
