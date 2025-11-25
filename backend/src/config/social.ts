@@ -9,6 +9,7 @@ export interface SocialProviderConfig {
   clientId?: string;
   clientSecret?: string;
   redirectUri?: string;
+  redirect_uri?: string;
   additionalParams?: Record<string, string>;
 }
 
@@ -26,7 +27,7 @@ export const socialConfig: SocialConfig = {
     userInfoUrl: 'https://kapi.kakao.com/v2/user/me',
     clientId: process.env.KAKAO_REST_API_KEY, // 키입력 필수
     clientSecret: process.env.KAKAO_CLIENT_SECRET,
-    redirectUri: process.env.KAKAO_REDIRECT_URI,
+    redirect_uri: process.env.KAKAO_REDIRECT_URI,
   },
   naver: {
     tokenUrl: 'https://nid.naver.com/oauth2.0/token',
