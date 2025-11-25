@@ -21,6 +21,15 @@ interface SocialLoginResult {
   user: Pick<User, 'id' | 'name' | 'email' | 'provider' | 'role' | 'employeeId'>;
 }
 
+interface SocialTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in?: number;
+  scope?: string;
+  token_type?: string;
+  id_token?: string;
+}
+
 interface RefreshTokenResult {
   access_token: string;
   refresh_token: string;
@@ -38,6 +47,73 @@ const ensureProvider = (provider: string): SocialProvider => {
   }
 
   throw new HttpError(400, '지원하지 않는 소셜 로그인입니다.', 'UNSUPPORTED_PROVIDER');
+};
+
+const exchangeAuthorizationCodeForToken = async (
+  provider: SocialProvider,
+  code: string,
+  state?: string,
+  redirectUriOverride?: string,
+): Promise<SocialTokenResponse> => {
+  const config = socialConfig[provider];
+
+  if (!config?.tokenUrl || !config.clientId) {
+    throw new HttpError(400, '소셜 로그인 구성이 올바르지 않습니다.', 'INVALID_SOCIAL_CONFIG');
+  }
+
+  const redirectUri = redirectUriOverride ?? config.redirectUri;
+
+  if (!redirectUri) {
+    throw new HttpError(400, '소셜 로그인 리디렉트 URI가 설정되지 않았습니다.', 'INVALID_SOCIAL_CONFIG');
+  }
+
+  const params = new URLSearchParams({
+    grant_type: 'authorization_code',
+    client_id: config.clientId,
+    redirect_uri: redirectUri,
+    code,
+  });
+
+  if (config.clientSecret) {
+    params.append('client_secret', config.clientSecret);
+  }
+
+  if (state && provider === 'naver') {
+    params.append('state', state);
+  }
+
+  try {
+    logger.info('Exchanging authorization code for token', {
+      provider,
+      redirectUri,
+    });
+
+    const response = await axios.post<SocialTokenResponse>(config.tokenUrl, params, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+
+    if (!response.data?.access_token) {
+      throw new HttpError(401, 'Access Token을 발급받지 못했습니다.', 'TOKEN_EXCHANGE_FAILED');
+    }
+
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+
+    logger.warn('Authorization code exchange failed', {
+      provider,
+      error: axiosError.response?.data ?? axiosError.message,
+    });
+
+    throw new HttpError(
+      401,
+      'SNS 권한 코드를 Access Token으로 교환하는데 실패했습니다.',
+      'TOKEN_EXCHANGE_FAILED',
+      axiosError.response?.data ?? axiosError.message,
+    );
+  }
 };
 
 const buildEmployeeId = (provider: SocialProvider, providerId: string): string => {
@@ -294,6 +370,26 @@ export const loginWithSocial = async (
     expires_in: calculateExpiresInSeconds(jwtAccessToken),
     user: sanitizeUser(user),
   };
+};
+
+export const loginWithAuthorizationCode = async (
+  providerParam: string,
+  code: string,
+  state?: string,
+  redirectUriOverride?: string,
+): Promise<SocialLoginResult & { social_access_token: string }> => {
+  const provider = ensureProvider(providerParam.toLowerCase());
+
+  const { access_token: socialAccessToken } = await exchangeAuthorizationCodeForToken(
+    provider,
+    code,
+    state,
+    redirectUriOverride,
+  );
+
+  const loginResult = await loginWithSocial(provider, socialAccessToken);
+
+  return { ...loginResult, social_access_token: socialAccessToken };
 };
 
 export const refreshAccessToken = async (refreshToken: string): Promise<RefreshTokenResult> => {
